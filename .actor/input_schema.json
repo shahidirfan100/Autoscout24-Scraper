@@ -15,28 +15,6 @@
         }
       ]
     },
-    "countries": {
-      "title": "🌍 Countries",
-      "type": "array",
-      "description": "Country codes to search in.",
-      "editor": "stringList",
-      "items": {
-        "type": "string"
-      },
-      "default": [
-        "D",
-        "A",
-        "I",
-        "B",
-        "NL",
-        "E",
-        "L",
-        "F"
-      ],
-      "prefill": [
-        "D"
-      ]
-    },
     "make": {
       "title": "🚗 Make",
       "type": "string",

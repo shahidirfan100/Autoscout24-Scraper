@@ -9,7 +9,6 @@ async function main() {
         const input = (await Actor.getInput()) || {};
         const {
             startUrls = [],
-            countries = ['D', 'A', 'I', 'B', 'NL', 'E', 'L', 'F'],
             make = '',
             model = '',
             priceFrom,
@@ -30,7 +29,7 @@ async function main() {
 
         const buildSearchUrl = () => {
             const url = new URL('https://www.autoscout24.com/lst');
-            if (countries.length) url.searchParams.set('cy', countries.join(','));
+            url.searchParams.set('cy', 'D,A,I,B,NL,E,L,F');
             if (make) url.searchParams.set('mmvmk0', make.toLowerCase());
             if (model) url.searchParams.set('mmvmd0', model.toLowerCase());
             if (priceFrom) url.searchParams.set('pricefrom', String(priceFrom));
@@ -76,12 +75,28 @@ async function main() {
             }
         };
 
-        const parsePrice = (priceData) => {
-            if (!priceData) return { price: null, currency: 'EUR' };
+        const parsePower = (vehicleDetails) => {
+            if (!Array.isArray(vehicleDetails)) return { power_hp: null, power_kw: null };
+            const powerDetail = vehicleDetails.find(d => d.ariaLabel === 'Power')?.data || '';
+            const hpMatch = powerDetail.match(/\((\d+)\s*hp\)/i);
+            const kwMatch = powerDetail.match(/(\d+)\s*kW/i);
             return {
-                price: priceData.priceRaw ?? priceData.price ?? null,
-                currency: priceData.currency || 'EUR',
+                power_hp: hpMatch ? parseInt(hpMatch[1], 10) : null,
+                power_kw: kwMatch ? parseInt(kwMatch[1], 10) : null,
             };
+        };
+
+        const parseColorFromUrl = (url) => {
+            if (!url) return null;
+            const parts = url.split('-');
+            const colorIndex = parts.length - 2;
+            if (colorIndex > 0) {
+                const color = parts[colorIndex];
+                if (/^[a-z]+$/i.test(color) && color.length > 2 && color.length < 15) {
+                    return color.charAt(0).toUpperCase() + color.slice(1);
+                }
+            }
+            return null;
         };
 
         const extractListingFromData = (item) => {
@@ -90,23 +105,50 @@ async function main() {
             const tracking = item.tracking || {};
             const location = item.location || {};
             const seller = item.seller || {};
-            const { price, currency } = parsePrice(item.price);
+            const vehicleDetails = item.vehicleDetails || [];
+
+            // Price extraction - multiple fallbacks
+            let price = null;
+            if (tracking.price) {
+                price = parseInt(String(tracking.price).replace(/\D/g, ''), 10) || null;
+            } else if (item.price?.priceRaw) {
+                price = item.price.priceRaw;
+            } else if (item.price?.priceFormatted) {
+                price = parseInt(String(item.price.priceFormatted).replace(/\D/g, ''), 10) || null;
+            }
+
+            // Power extraction from vehicleDetails array
+            const { power_hp, power_kw } = parsePower(vehicleDetails);
+
+            // Image URL extraction
+            let image_url = null;
+            if (item.images && item.images.length > 0) {
+                image_url = typeof item.images[0] === 'string' ? item.images[0] : item.images[0]?.url || null;
+            } else if (item.image?.url) {
+                image_url = item.image.url;
+            }
+
+            // Color from URL (list page doesn't have color field)
+            const color = parseColorFromUrl(item.url);
+
+            // Body type from vehicle.variant (fallback since bodyType not in list)
+            const body_type = vehicle.bodyType || vehicle.variant || null;
 
             return {
                 id: item.id || null,
                 make: vehicle.make || tracking.make || null,
                 model: vehicle.model || tracking.model || null,
-                version: vehicle.modelVersionInput || null,
+                version: vehicle.modelVersionInput || vehicle.version || null,
                 price,
-                currency,
-                mileage_km: vehicle.mileageInKm ?? vehicle.mileageInKmRaw ?? null,
+                currency: item.price?.currency || 'EUR',
+                mileage_km: vehicle.mileageInKm ?? vehicle.mileageInKmRaw ?? tracking.mileage ?? null,
                 first_registration: tracking.firstRegistration || vehicle.firstRegistration || null,
-                fuel_type: vehicle.fuel || vehicle.fuelType || null,
-                transmission: vehicle.transmission || vehicle.gearbox || null,
-                power_hp: tracking.power || vehicle.power || null,
-                power_kw: vehicle.powerInKw || null,
-                body_type: vehicle.bodyType || null,
-                color: vehicle.bodyColor || null,
+                fuel_type: vehicle.fuel || vehicle.fuelType || tracking.fuel || null,
+                transmission: vehicle.transmission || vehicle.gearbox || tracking.transmission || null,
+                power_hp,
+                power_kw,
+                body_type,
+                color,
                 num_doors: vehicle.numberOfDoors || null,
                 num_seats: vehicle.numberOfSeats || null,
                 seller_name: seller.companyName || seller.name || null,
@@ -114,8 +156,8 @@ async function main() {
                 location_city: location.city || null,
                 location_country: location.countryCode || null,
                 location_zip: location.zip || null,
-                image_url: item.images?.[0]?.url || item.image?.url || null,
-                url: item.url ? `https://www.autoscout24.com${item.url.startsWith('/') ? '' : '/'}${item.url}` : null,
+                image_url,
+                url: item.url ? (item.url.startsWith('http') ? item.url : `https://www.autoscout24.com${item.url.startsWith('/') ? '' : '/'}${item.url}`) : null,
             };
         };
 
@@ -147,6 +189,8 @@ async function main() {
                 const transmissionSpec = specs.find(s => /manual|automatic/i.test(s));
                 const powerSpec = specs.find(s => /hp|kw|ps/i.test(s));
 
+                const color = parseColorFromUrl(href);
+
                 listings.push({
                     id: href.split('/').pop()?.split('-')[0] || null,
                     make: title.split(' ')[0] || null,
@@ -161,7 +205,7 @@ async function main() {
                     power_hp: powerSpec ? parseInt(powerSpec.replace(/\D/g, ''), 10) : null,
                     power_kw: null,
                     body_type: null,
-                    color: null,
+                    color,
                     num_doors: null,
                     num_seats: null,
                     seller_name: null,
@@ -176,13 +220,43 @@ async function main() {
             return listings;
         };
 
+        // Stealth headers for anti-bot bypass
+        const stealthHeaders = {
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9,de;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+            'Sec-Ch-Ua-Mobile': '?0',
+            'Sec-Ch-Ua-Platform': '"Windows"',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'Upgrade-Insecure-Requests': '1',
+        };
+
         const crawler = new CheerioCrawler({
             proxyConfiguration: proxyConf,
-            maxRequestRetries: 3,
+            maxRequestRetries: 5,
             useSessionPool: true,
-            maxConcurrency: 5,
-            requestHandlerTimeoutSecs: 60,
+            persistCookiesPerSession: true,
+            sessionPoolOptions: {
+                maxPoolSize: 50,
+                sessionOptions: {
+                    maxUsageCount: 10,
+                },
+            },
+            maxConcurrency: 3,
+            requestHandlerTimeoutSecs: 90,
+            navigationTimeoutSecs: 60,
             additionalMimeTypes: ['application/json'],
+            preNavigationHooks: [
+                async ({ request }) => {
+                    request.headers = { ...request.headers, ...stealthHeaders };
+                },
+            ],
             async requestHandler({ request, $, body }) {
                 const pageNo = request.userData?.pageNo || 1;
                 const html = typeof body === 'string' ? body : body.toString();
