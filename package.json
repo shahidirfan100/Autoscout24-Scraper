@@ -1,0 +1,21 @@
+{
+  "name": "autoscout24-scraper",
+  "version": "1.0.0",
+  "description": "Fast Autoscout24 car listings scraper for used and new vehicles across Europe.",
+  "type": "module",
+  "dependencies": {
+    "apify": "^3.5.2",
+    "crawlee": "^3.15.3",
+    "cheerio": "^1.0.0-rc.12"
+  },
+  "scripts": {
+    "start": "node src/main.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "test": "echo \"Error: oops, the Actor has no tests yet, sad!\" && exit 1"
+  },
+  "author": "Shahid Irfan",
+  "license": "ISC"
+}

@@ -1,0 +1,58 @@
+{
+  "actorSpecification": 1,
+  "fields": {},
+  "views": {
+    "overview": {
+      "title": "Overview",
+      "transformation": {
+        "fields": [
+          "make",
+          "model",
+          "price",
+          "mileage_km",
+          "first_registration",
+          "fuel_type",
+          "location_city",
+          "url"
+        ]
+      },
+      "display": {
+        "component": "table",
+        "properties": {
+          "make": {
+            "label": "Make",
+            "format": "text"
+          },
+          "model": {
+            "label": "Model",
+            "format": "text"
+          },
+          "price": {
+            "label": "Price (€)",
+            "format": "number"
+          },
+          "mileage_km": {
+            "label": "Mileage (km)",
+            "format": "number"
+          },
+          "first_registration": {
+            "label": "Year",
+            "format": "text"
+          },
+          "fuel_type": {
+            "label": "Fuel",
+            "format": "text"
+          },
+          "location_city": {
+            "label": "Location",
+            "format": "text"
+          },
+          "url": {
+            "label": "URL",
+            "format": "link"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,175 @@
+{
+  "title": "Autoscout24 Scraper",
+  "description": "Scrape used and new car listings from AutoScout24 across Europe. Extract vehicle details including price, mileage, specifications, and seller information.",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "startUrls": {
+      "title": "🔗 Start URLs",
+      "type": "array",
+      "description": "Custom AutoScout24 search URLs. If provided, these override other search filters.",
+      "editor": "requestListSources",
+      "prefill": [
+        {
+          "url": "https://www.autoscout24.com/lst?cy=D&source=detailsearch"
+        }
+      ]
+    },
+    "countries": {
+      "title": "🌍 Countries",
+      "type": "array",
+      "description": "Country codes to search in.",
+      "editor": "select",
+      "items": {
+        "type": "string"
+      },
+      "enum": [
+        "D",
+        "A",
+        "I",
+        "B",
+        "NL",
+        "E",
+        "L",
+        "F"
+      ],
+      "enumTitles": [
+        "🇩🇪 Germany",
+        "🇦🇹 Austria",
+        "🇮🇹 Italy",
+        "🇧🇪 Belgium",
+        "🇳🇱 Netherlands",
+        "🇪🇸 Spain",
+        "🇱🇺 Luxembourg",
+        "🇫🇷 France"
+      ],
+      "default": [
+        "D",
+        "A",
+        "I",
+        "B",
+        "NL",
+        "E",
+        "L",
+        "F"
+      ]
+    },
+    "make": {
+      "title": "🚗 Make",
+      "type": "string",
+      "description": "Car manufacturer (e.g., BMW, Audi, Mercedes-Benz, Volkswagen).",
+      "editor": "textfield"
+    },
+    "model": {
+      "title": "📋 Model",
+      "type": "string",
+      "description": "Car model (e.g., 3 Series, A4, C-Class, Golf).",
+      "editor": "textfield"
+    },
+    "priceFrom": {
+      "title": "💰 Min Price (€)",
+      "type": "integer",
+      "description": "Minimum price in EUR.",
+      "minimum": 0,
+      "editor": "number"
+    },
+    "priceTo": {
+      "title": "💰 Max Price (€)",
+      "type": "integer",
+      "description": "Maximum price in EUR.",
+      "minimum": 0,
+      "editor": "number"
+    },
+    "yearFrom": {
+      "title": "📅 Min Year",
+      "type": "integer",
+      "description": "Minimum first registration year.",
+      "minimum": 1900,
+      "maximum": 2030,
+      "editor": "number"
+    },
+    "yearTo": {
+      "title": "📅 Max Year",
+      "type": "integer",
+      "description": "Maximum first registration year.",
+      "minimum": 1900,
+      "maximum": 2030,
+      "editor": "number"
+    },
+    "mileageFrom": {
+      "title": "🛣️ Min Mileage (km)",
+      "type": "integer",
+      "description": "Minimum mileage in kilometers.",
+      "minimum": 0,
+      "editor": "number"
+    },
+    "mileageTo": {
+      "title": "🛣️ Max Mileage (km)",
+      "type": "integer",
+      "description": "Maximum mileage in kilometers.",
+      "minimum": 0,
+      "editor": "number"
+    },
+    "fuelType": {
+      "title": "⛽ Fuel Type",
+      "type": "string",
+      "description": "Filter by fuel type.",
+      "editor": "select",
+      "enum": [
+        "",
+        "G",
+        "D",
+        "E",
+        "H"
+      ],
+      "enumTitles": [
+        "All",
+        "⛽ Gasoline",
+        "🛢️ Diesel",
+        "🔋 Electric",
+        "🔄 Hybrid"
+      ],
+      "default": ""
+    },
+    "results_wanted": {
+      "title": "📊 Max Results",
+      "type": "integer",
+      "description": "Maximum number of car listings to collect.",
+      "minimum": 1,
+      "default": 50,
+      "prefill": 20,
+      "editor": "number"
+    },
+    "max_pages": {
+      "title": "📄 Max Pages",
+      "type": "integer",
+      "description": "Maximum search result pages to process (max 20).",
+      "minimum": 1,
+      "maximum": 20,
+      "default": 10,
+      "prefill": 5,
+      "editor": "number"
+    },
+    "collectDetails": {
+      "title": "🔍 Collect Full Details",
+      "type": "boolean",
+      "description": "Visit individual listing pages for complete vehicle specifications.",
+      "editor": "checkbox",
+      "default": false
+    },
+    "proxyConfiguration": {
+      "title": "🔒 Proxy Configuration",
+      "type": "object",
+      "description": "Proxy settings for requests.",
+      "editor": "proxy",
+      "default": {
+        "useApifyProxy": true,
+        "apifyProxyGroups": [
+          "RESIDENTIAL"
+        ]
+      }
+    }
+  },
+  "required": [],
+  "additionalProperties": false
+}
