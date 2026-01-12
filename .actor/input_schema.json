@@ -19,30 +19,10 @@
       "title": "🌍 Countries",
       "type": "array",
       "description": "Country codes to search in.",
-      "editor": "select",
+      "editor": "stringList",
       "items": {
         "type": "string"
       },
-      "enum": [
-        "D",
-        "A",
-        "I",
-        "B",
-        "NL",
-        "E",
-        "L",
-        "F"
-      ],
-      "enumTitles": [
-        "🇩🇪 Germany",
-        "🇦🇹 Austria",
-        "🇮🇹 Italy",
-        "🇧🇪 Belgium",
-        "🇳🇱 Netherlands",
-        "🇪🇸 Spain",
-        "🇱🇺 Luxembourg",
-        "🇫🇷 France"
-      ],
       "default": [
         "D",
         "A",
@@ -52,6 +32,9 @@
         "E",
         "L",
         "F"
+      ],
+      "prefill": [
+        "D"
       ]
     },
     "make": {
